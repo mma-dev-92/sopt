@@ -1,0 +1,20 @@
+IS CYCLE PROFITABLE FROM THE ROI PERSPECTIVE?
+- per each battery we have a finite number of cycles we could use
+- I would like to know what is the minimal revenue per cycle, that is acceptable from the long term perspective investment (for the owner) - the ROI perspective
+- It require to include: discount rate, OPEX + CAPEX, Lifetime structure, degradation
+
+STORAGE PARAMETERS DEGRADATION:
+- to optimize storage, it is essential to be able to estimate it's parameters degradation
+- how the cap is decreasing (with time)
+- ...
+
+I WANT TO FINISH WITH CORRECT SOC FOR THE NEXT DAY
+- I can do some prediction about the next day time-series, and then optimize for 2 days, where current day is optimized with coeff=1.0, and second day with coeff=0.25 (or I will adjust it better)
+
+I WANT TO INCLUDE Multi-Market Stacking:
+
+- Morning → reserve market
+- Afternoon → arbitrage
+- Evening → balancing
+
+This dramatically increases total revenue.
