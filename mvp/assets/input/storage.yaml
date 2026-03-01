@@ -3,10 +3,11 @@ storage:
   power: 50.0
   load_efficiency: 0.95
   gen_efficiency: 0.94
+  init_soc: 0.0
 
   dod:
-    min: 0.1
-    max: 0.9
+    MIN: 0.1
+    MAX: 0.9
 
   wacc: 0.08
   capex: 1500000

@@ -13,8 +13,8 @@ class Index:
         assert np.unique(values).size == values.size, 'indexing set must contain unique elements'
 
         self.name = name
-        self._values = values.squeeze()
-        self._ii = np.arange(len(values.squeeze()))
+        self._values = values
+        self._ii = np.arange(len(values))
 
     @property
     def ii(self) -> np.ndarray:

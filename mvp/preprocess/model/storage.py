@@ -1,6 +1,11 @@
 from pydantic import BaseModel
 
 
+class MinMaxBounds(BaseModel):
+    MIN: float
+    MAX: float
+
+
 class StorageParams(BaseModel):
     # technical parameters
     capacity: float
@@ -11,8 +16,10 @@ class StorageParams(BaseModel):
     """load efficiency"""
     gen_efficiency: float
     """generation efficiency"""
-    dod: tuple[float, float]
-    """min, max depth of discharge"""
+    init_soc: float
+    """Initial state of charge"""
+    dod: MinMaxBounds
+    """min & max values of the depth of discharge"""
     # degradation rate (to do appropriate research - not current phase)
     ...
     # financing parameters

@@ -24,18 +24,21 @@ def load_price_data_from_entsoe(path: Path) -> pd.DataFrame:
 
 def get_data_resolution(df: pd.DataFrame) -> float:
     # Ensure datetime dtype
-    df['start'] = pd.to_datetime(df['start'])
-    df['end'] = pd.to_datetime(df['end'])
+    start = df.index.get_level_values('start')
+    start = pd.to_datetime(start)
+
+    end = df.index.get_level_values('end')
+    end = pd.to_datetime(end)
 
     # Compute interval length
-    interval = df['end'] - df['start']
-    if not interval.nunique() == 1:
+    intervals = end - start
+    if not intervals.nunique() == 1:
         raise ValueError("all rows in price data must have the same resolution")
 
-    return interval / pd.Timedelta(hours=1)
+    return intervals.unique().values.squeeze() / pd.Timedelta(hours=1)
 
 
-def load(path: Path) -> MarketData:
+def load_market_data(path: Path) -> MarketData:
     price_df = load_price_data_from_entsoe(path)
     resolution = get_data_resolution(price_df)
     return MarketData(prices=price_df, resolution=resolution)
