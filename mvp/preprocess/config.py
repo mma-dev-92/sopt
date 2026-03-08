@@ -27,35 +27,35 @@ def validate_directory_path(path: Path, param_name: str) -> None:
 @dataclasses.dataclass
 class InputPaths:
     """Config section containing input data paths"""
-    market_data_path: Path
-    storage_params_path: Path
+    market_data: Path
+    storage: Path
+    params: Path
 
     @classmethod
     def load(cls, config: ConfigParser) -> Self:
         section = 'input'
         return cls(
-            market_data_path=Path(config.get(section, 'market_data_path')),
-            storage_params_path=Path(config.get(section, 'storage_params_path')),
+            market_data=Path(config.get(section, 'market_data')),
+            storage=Path(config.get(section, 'storage')),
+            params=Path(config.get(section, 'params')),
         )
 
     def __post_init__(self):
         validate_file_suffix_path(
-            self.market_data_path,
-            param_name='market_data_path',
-            suffix='.csv'
+            self.market_data,
+            param_name='market_data',
+            suffix='.csv',
         )
         validate_file_suffix_path(
-            self.storage_params_path,
-            param_name='storage_params_path',
-            suffix='.yaml'
+            self.storage,
+            param_name='storage',
+            suffix='.yaml',
         )
-
-
-
-@dataclasses.dataclass
-class MetaParameters:
-    """Config section containing meta-parameters"""
-    pass
+        validate_file_suffix_path(
+            self.params,
+            param_name='params',
+            suffix='.yaml',
+        )
 
 
 @dataclasses.dataclass

@@ -38,7 +38,8 @@ class BalancingConstraintGenerator(ConstraintGenerator):
 
         return [
             soc[0] == init_soc,
-            soc[1:] == soc[:-1] + dt * load_eta * load[:-1] - dt * gen[:-1]
+            soc[1:] == soc[:-1] + (dt * load_eta) * load[:-1] - dt * gen[:-1],
+            soc[-1] == init_soc,
         ]
 
 

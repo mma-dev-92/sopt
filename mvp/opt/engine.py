@@ -7,7 +7,6 @@ import mvp.opt.obj as obj
 from mvp.opt.indices import Indices
 from mvp.opt.parameters import Parameters
 from mvp.opt.variables import Variables
-from mvp.preprocess.config import Configuration
 from mvp.preprocess.model import InputData
 
 
@@ -23,15 +22,15 @@ class Engine:
         obj.RevenueObjectiveGenerator,
     ]
 
-    def __init__(self, input_data: InputData, config: Configuration) -> None:
+    def __init__(self, input_data: InputData) -> None:
         self.input_data = input_data
-        self.config = config
-
-        self.indices = Indices.create(input_data)
-        self.parameters = Parameters.create(input_data)
-        self.variables = Variables.create(input_data)
 
         self.opt_problem: cp.Problem | None = None
+
+        self.indices = Indices.create(input_data)
+        self.parameters = Parameters.create(input_data, self.indices)
+        self.variables = Variables.create(self.indices)
+
 
     def build(self) -> None:
         constraints = self._build_constraints()
@@ -61,4 +60,9 @@ class Engine:
         return cp.Maximize(result)
 
     def optimize(self) -> None:
-        self.opt_problem.solve(solver=cp.HIGHS)
+        self.opt_problem.solve(
+            solver=cp.HIGHS,
+            verbose=False,
+        )
+        if self.opt_problem.status not in ("optimal", "optimal_inaccurate"):
+            raise RuntimeError(self.opt_problem.status)

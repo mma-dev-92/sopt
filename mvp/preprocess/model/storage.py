@@ -30,3 +30,7 @@ class StorageParams(BaseModel):
     # for now, let's assume opex = epsilon * capex (yearly)
     opex: float
     """operational costs (assumed PLN/MWh)"""
+    life_time: int
+    """life time of a storage"""
+    n_cycles: int
+    """number of cycles to be performed during storage life time"""

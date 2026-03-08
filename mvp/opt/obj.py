@@ -27,13 +27,11 @@ class ObjectiveGenerator:
 class RevenueObjectiveGenerator(ObjectiveGenerator):
     def generate(self) -> cp.Expression:
 
-        gen, load = (
-            self.variables.gen,
-            self.variables.soc
-        )
+        gen = self.variables.gen
+        load = self.variables.load
 
         dt = self.params.dt
         gen_eta = self.params.storage_params.gen_efficiency
-        price = self.params.prices
+        price = self.params.prices.squeeze()
 
-        return (dt * price.reshape(1, -1)) @ (gen_eta * gen - load)
+        return dt * cp.sum(cp.multiply(price, (gen_eta * gen - load)))
