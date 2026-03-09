@@ -1,8 +1,8 @@
-from mvp.preprocess.config import Configuration
-from mvp.preprocess.load.market import load_market_data
-from mvp.preprocess.load.params import load_params
-from mvp.preprocess.load.storage import load_storage_params
-from mvp.preprocess.model import InputData
+from src.preprocess.config import Configuration
+from src.preprocess.load.market import load_market_data
+from src.preprocess.load.params import load_params
+from src.preprocess.load.storage import load_storage_params
+from src.preprocess.model import InputData
 
 
 def load_input_data(configuration: Configuration) -> InputData:

@@ -1,7 +1,14 @@
 import dataclasses
+from enum import Enum
 from pathlib import Path
 from typing import Self
 from configparser import ConfigParser
+
+
+class OutputFormat(Enum):
+    CSV = "csv"
+    XLSX = "xlsx"
+    PARQUET = "parquet"
 
 
 class ConfigValidationError(Exception):
@@ -62,16 +69,26 @@ class InputPaths:
 class OutputPaths:
     """Config section containing output data paths"""
     result_dir: Path
+    format: str
 
     @classmethod
     def load(cls, config: ConfigParser) -> Self:
         section = 'output'
         return cls(
             result_dir=Path(config.get(section, 'result_dir')),
+            format=config.get(section, 'format'),
         )
 
     def __post_init__(self):
         validate_directory_path(self.result_dir, param_name='result_dir')
+        self.validate_output_format()
+
+    def validate_output_format(self) -> None:
+        if not self.format in OutputFormat:
+            raise ConfigValidationError(
+                f"format in [output] section should be one of {[x.value for x in OutputFormat]}, "
+                f"but {self.format} was given"
+            )
 
 
 @dataclasses.dataclass

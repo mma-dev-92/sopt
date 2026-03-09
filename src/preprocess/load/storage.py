@@ -2,7 +2,7 @@ from pathlib import Path
 
 import yaml
 
-from mvp.preprocess.model import StorageParams
+from src.preprocess.model import StorageParams
 
 
 def load_storage_params(path: Path) -> StorageParams:

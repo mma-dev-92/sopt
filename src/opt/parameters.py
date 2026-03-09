@@ -3,8 +3,8 @@ import numpy as np
 
 from typing import Self
 
-from mvp.opt.indices import Indices
-from mvp.preprocess.model import StorageParams, InputData
+from src.opt.indices import Indices
+from src.preprocess.model import StorageParams, InputData
 
 
 @dataclasses.dataclass

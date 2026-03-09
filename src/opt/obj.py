@@ -1,13 +1,13 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABCMeta
 
 import cvxpy as cp
 
-from mvp.opt.indices import Indices
-from mvp.opt.parameters import Parameters
-from mvp.opt.variables import Variables
+from src.opt.indices import Indices
+from src.opt.parameters import Parameters
+from src.opt.variables import Variables
 
 
-class ObjectiveGenerator:
+class ObjectiveGenerator(metaclass=ABCMeta):
 
     def __init__(
         self,
@@ -30,8 +30,7 @@ class RevenueObjectiveGenerator(ObjectiveGenerator):
         gen = self.variables.gen
         load = self.variables.load
 
-        dt = self.params.dt
         gen_eta = self.params.storage_params.gen_efficiency
         price = self.params.prices.squeeze()
 
-        return dt * cp.sum(cp.multiply(price, (gen_eta * gen - load)))
+        return cp.sum(cp.multiply(price, (gen_eta * gen - load)))

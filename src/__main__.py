@@ -1,4 +1,4 @@
-from mvp.cli.run import cli_run
+from src.cli.run import cli_run
 
 
 if __name__ == '__main__':

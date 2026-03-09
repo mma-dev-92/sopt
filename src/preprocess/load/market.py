@@ -1,7 +1,7 @@
 import pandas as pd
 from pathlib import Path
 
-from mvp.preprocess.model.market import MarketData
+from src.preprocess.model.market import MarketData
 
 
 def load_price_data_from_entsoe(path: Path) -> pd.DataFrame:
@@ -15,23 +15,18 @@ def load_price_data_from_entsoe(path: Path) -> pd.DataFrame:
 
     price_col = 'Day-ahead Price (EUR/MWh)'
     data[["start_str", "end_str"]] = data["MTU (UTC)"].str.split(" - ", expand=True)
-    data["start"] = pd.to_datetime(data["start_str"], format="%d/%m/%Y %H:%M:%S")
-    data["end"] = pd.to_datetime(data["end_str"], format="%d/%m/%Y %H:%M:%S")
+    data["timestamp"] = pd.to_datetime(data["start_str"], format="%d/%m/%Y %H:%M:%S")
     data = data.rename(columns={price_col: 'price'})
-    data = data[['start', 'end', 'price']].set_index(['start', 'end'])
+    data = data[['timestamp', 'price']].set_index('timestamp')
     return data
 
 
 def get_data_resolution(df: pd.DataFrame) -> float:
-    # Ensure datetime dtype
-    start = df.index.get_level_values('start')
-    start = pd.to_datetime(start)
+    # get timestamp index
+    t_index = df.index.get_level_values('timestamp')
 
-    end = df.index.get_level_values('end')
-    end = pd.to_datetime(end)
-
-    # Compute interval length
-    intervals = end - start
+    # compute interval length
+    intervals = t_index.diff()[1:]
     if not intervals.nunique() == 1:
         raise ValueError("all rows in price data must have the same resolution")
 

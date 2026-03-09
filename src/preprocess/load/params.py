@@ -2,7 +2,7 @@ from pathlib import Path
 
 import yaml
 
-from mvp.preprocess.model.params import Params
+from src.preprocess.model.params import Params
 
 
 def load_params(path: Path) -> Params:

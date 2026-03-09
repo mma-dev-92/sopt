@@ -5,7 +5,7 @@ import numpy as np
 from typing import Self
 from datetime import date
 
-from mvp.preprocess.model import InputData
+from src.preprocess.model import InputData
 
 
 class Index:
@@ -51,4 +51,4 @@ class Indices:
             end=pd.Timestamp(partition) + pd.Timedelta(hours=23, minutes=45),
             freq='15min',
         )
-        return Index(name='T', values=timestamps.values)
+        return Index(name='timestamp', values=timestamps.values)

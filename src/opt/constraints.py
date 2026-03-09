@@ -1,13 +1,13 @@
 import cvxpy as cp
 
-from abc import abstractmethod
+from abc import abstractmethod, ABCMeta
 
-from mvp.opt.indices import Indices
-from mvp.opt.parameters import Parameters
-from mvp.opt.variables import Variables
+from src.opt.indices import Indices
+from src.opt.parameters import Parameters
+from src.opt.variables import Variables
 
 
-class ConstraintGenerator:
+class ConstraintGenerator(metaclass=ABCMeta):
 
     def __init__(
             self,
@@ -33,12 +33,11 @@ class BalancingConstraintGenerator(ConstraintGenerator):
         )
 
         load_eta = self.params.storage_params.load_efficiency
-        dt = self.params.dt
         init_soc = self.params.storage_params.init_soc
 
         return [
             soc[0] == init_soc,
-            soc[1:] == soc[:-1] + (dt * load_eta) * load[:-1] - dt * gen[:-1],
+            soc[1:] == soc[:-1] + load_eta * load[:-1] - gen[:-1],
             soc[-1] == init_soc,
         ]
 
@@ -53,7 +52,7 @@ class PowerConstraintGenerator(ConstraintGenerator):
         power = self.params.storage_params.power
         dt = self.params.dt
 
-        return [dt * (gen + load) <= power]
+        return [gen + load <= dt * power]
 
 
 class CapacityConstraintGenerator(ConstraintGenerator):
@@ -65,4 +64,20 @@ class CapacityConstraintGenerator(ConstraintGenerator):
         return [
             soc >= dod.MIN * capacity,
             soc <= dod.MAX * capacity,
+        ]
+
+
+class DecisionConstraintGenerator(ConstraintGenerator):
+    def generate(self) -> list[cp.Constraint]:
+
+        gen = self.variables.gen
+        load = self.variables.load
+
+        bin_gen = self.variables.bin_gen
+        bin_load = self.variables.bin_load
+
+        return [
+            bin_gen >= gen,
+            bin_load >= load,
+            bin_gen + bin_load <= 1,
         ]

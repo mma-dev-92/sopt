@@ -2,12 +2,12 @@ from typing import Type
 
 import cvxpy as cp
 
-import mvp.opt.constraints as constr
-import mvp.opt.obj as obj
-from mvp.opt.indices import Indices
-from mvp.opt.parameters import Parameters
-from mvp.opt.variables import Variables
-from mvp.preprocess.model import InputData
+import src.opt.constraints as constr
+import src.opt.obj as obj
+from src.opt.indices import Indices
+from src.opt.parameters import Parameters
+from src.opt.variables import Variables
+from src.preprocess.model import InputData
 
 
 class Engine:
@@ -16,6 +16,7 @@ class Engine:
         constr.BalancingConstraintGenerator,
         constr.PowerConstraintGenerator,
         constr.CapacityConstraintGenerator,
+        constr.DecisionConstraintGenerator,
     ]
 
     _obj_generators: list[Type[obj.ObjectiveGenerator]] = [
