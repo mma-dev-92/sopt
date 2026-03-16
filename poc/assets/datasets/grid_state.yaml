@@ -1,0 +1,29 @@
+dataset_name: grid_state
+
+data_source: ENTSOE
+
+timezone: UTC
+
+valid_time_resolution: 1h
+
+time_semantics: interval_start
+
+description: >
+  Power system state dataset retrieved from the ENTSO-E Transparency Platform.
+
+  Contains both historical observations and system forecasts.
+
+  Time coverage:
+    - Observations: now − 48 hours → now
+    - Forecast: now → end of next day
+
+  Variables:
+    - system_load (MW)
+    - solar_generation (MW)
+    - wind_generation (MW)
+
+  Observed values represent realised generation and load.
+  Forecast values represent day-ahead load forecast published by the TSO.
+
+  These variables are commonly used as explanatory features
+  for electricity price forecasting and power system modelling.

@@ -81,3 +81,15 @@ class DecisionConstraintGenerator(ConstraintGenerator):
             bin_load >= load,
             bin_gen + bin_load <= 1,
         ]
+
+class RevenueDefinitionConstraintGenerator(ConstraintGenerator):
+    def generate(self) -> list[cp.Constraint]:
+
+        gen = self.variables.gen
+        load = self.variables.load
+        rev = self.variables.rev
+
+        gen_eta = self.params.storage_params.gen_efficiency
+        price = self.params.prices.squeeze()
+
+        return [rev == cp.multiply(price, (gen_eta * gen - load))]

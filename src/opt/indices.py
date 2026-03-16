@@ -41,10 +41,9 @@ class Indices:
     @staticmethod
     def create_time_index_for_one_partition(partition: date) -> Index:
         """
-        For now hardcoded - index for one partition (24h)
+        For now hardcoded - index for one partition (24h) in 15min freq
 
         To be generalized later
-        :return:
         """
         timestamps = pd.date_range(
             start=pd.Timestamp(partition),

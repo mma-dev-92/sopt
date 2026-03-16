@@ -1,9 +1,11 @@
 import pandas as pd
 import numpy as np
+import cvxpy as cp
 
 from src.opt.engine import Engine
-from src.postprocess.results import OptResults
+from src.opt.indices import Index
 from src.preprocess.config import Configuration
+from src.preprocess.model import InputData
 
 
 def clean_solver_noise(
@@ -30,27 +32,42 @@ def clean_solver_noise(
     return out.round(decimals)
 
 
+def fetch_time_variable_from_opt_results(variable: cp.Variable, index: Index) -> pd.Series:
+    return pd.Series(
+        data=np.asarray(variable.value).flatten(),
+        index=index.vals,
+        name=variable.name,
+    )
+
+
 def create_exportable_results(engine: Engine) -> pd.DataFrame:
-    results = OptResults.from_engine(engine)
     price_vector = engine.input_data.market_data.prices.loc[engine.indices.t_idx.vals, :]
 
-    result = pd.concat([price_vector, results.cum_rev, results.gen, results.load, results.soc], axis=1)
+    decision_variable_results = [
+        fetch_time_variable_from_opt_results(variable, engine.indices.t_idx)
+        for variable in engine.variables.decision_variables
+    ]
+
+    result = pd.concat([price_vector] + decision_variable_results, axis=1)
     return clean_solver_noise(result)
 
 
-def export_opt_results(engine: Engine, configuration: Configuration) -> None:
+def export_opt_results(
+        input_data: InputData,
+        configuration: Configuration,
+        results_df: pd.DataFrame
+) -> None:
 
-    df = create_exportable_results(engine)
-    partition = engine.input_data.params.partition
+    partition = input_data.params.partition
     ext = configuration.output_paths.format
     export_path = configuration.output_paths.result_dir / f"{partition}.{ext}"
 
     match ext:
         case "parquet":
-            df.to_parquet(export_path)
+            results_df.to_parquet(export_path)
         case "csv":
-            df.to_csv(export_path)
+            results_df.to_csv(export_path)
         case "xlsx":
-            df.to_excel(export_path)
+            results_df.to_excel(export_path)
         case _:
             raise ValueError(f"Unrecognized export format: {ext}")

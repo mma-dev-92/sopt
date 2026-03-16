@@ -1,0 +1,26 @@
+dataset_name: weather
+
+data_source: OPEN_METEO
+
+timezone: UTC
+
+valid_time_resolution: 1h
+
+time_semantics: interval_start
+
+description: >
+  Weather dataset containing both historical observations and forecast data
+  for a specific geographic location. Data is retrieved from the Open-Meteo API.
+
+  Time coverage:
+    - Observations: now − 48 hours → now
+    - Forecast: now → now + 72 hours
+
+  Variables:
+    - temperature (°C)
+    - cloud_cover (%)
+    - wind_speed_10m (m/s)
+    - irradiance (W/m²)
+
+  These variables are used as features in electricity price forecasting
+  and renewable generation modeling.

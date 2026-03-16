@@ -18,3 +18,8 @@ I WANT TO INCLUDE Multi-Market Stacking:
 - Evening → balancing
 
 This dramatically increases total revenue.
+
+3 models:
+- model A: "raw model"
+- model B: use the lambda penalty coeff, as lambda = CAPEX / (N_cycles * usable capacity)
+- model C: capacity degradation, two coeffs: \alpha <- degradation per year (like 2%),

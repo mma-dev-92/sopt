@@ -17,6 +17,7 @@ class Engine:
         constr.PowerConstraintGenerator,
         constr.CapacityConstraintGenerator,
         constr.DecisionConstraintGenerator,
+        constr.RevenueDefinitionConstraintGenerator,
     ]
 
     _obj_generators: list[Type[obj.ObjectiveGenerator]] = [
