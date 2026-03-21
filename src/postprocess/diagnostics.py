@@ -1,7 +1,7 @@
 import pandas as pd
 
 from src.cli.run import run_opt
-from src.preprocess.model import StorageParams, InputData
+from src.preprocess.model import StorageStaticParams, InputData
 
 
 class MultiOptRunner:
@@ -38,7 +38,7 @@ class MultiOptRunner:
             deg_rate: float
     ) -> pd.Series:
         return pd.Series({
-            wacc: self._compute_single_npv(self.input_data.storage_params, base_y_rev, wacc, deg_rate)
+            wacc: self._compute_single_npv(self.input_data.storage_static_params, base_y_rev, wacc, deg_rate)
             for wacc in wacc_range
         })
 
@@ -51,7 +51,7 @@ class MultiOptRunner:
 
     @staticmethod
     def _compute_single_npv(
-            storage_params: StorageParams,
+            storage_params: StorageStaticParams,
             base_y_rev: float,
             wacc: float,
             deg_rate: float
@@ -60,7 +60,7 @@ class MultiOptRunner:
         capex = storage_params.capex
         opex = storage_params.opex
         capacity = storage_params.capacity
-        life_time = storage_params.life_time
+        life_time = storage_params.lifetime_years
 
         total_capex = capacity * capex
 
@@ -79,5 +79,5 @@ class MultiOptRunner:
 
     # TODO: bin search would be nice, with init left=0, right=1.0
     @staticmethod
-    def _compute_single_irr(storage_params: StorageParams, deg_rate: float) -> float:
+    def _compute_single_irr(storage_params: StorageStaticParams, deg_rate: float) -> float:
         pass

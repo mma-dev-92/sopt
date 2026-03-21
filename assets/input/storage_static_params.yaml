@@ -1,14 +1,14 @@
-# TODO: adjust the code
 storage:
-  capacity: 10.0
-  power: 5.0
+  technical:
+    capacity: 10.0
+    power: 5.0
 
-  charge_efficiency: 0.95
-  discharge_efficiency: 0.94
+    charge_efficiency: 0.95
+    discharge_efficiency: 0.94
 
-  soc_limits:
-    min: 0.1
-    max: 0.9
+    soc_limits:
+      min: 0.1
+      max: 0.9
 
   economics:
     wacc: 0.15
@@ -16,11 +16,10 @@ storage:
     opex: 6000
 
   degradation:
-    max_capacity_loss: 0.2
+    max_capacity_loss: 0.2  # cap_eol
 
-    dod_segment_fraction: [0.3, 0.4, 0.3]
-    degradation_weight: [0.6, 1.0, 1.8]
+    dod_segment_fraction: [0.3, 0.4, 0.3]  #
 
     lifetime_years: 10
     n_cycles: 6000
-    calendar_fade_per_year: 0.02
+    calendar_fade_per_year: 0.005

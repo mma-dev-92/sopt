@@ -35,7 +35,8 @@ def validate_directory_path(path: Path, param_name: str) -> None:
 class InputPaths:
     """Config section containing input data paths"""
     market_data: Path
-    storage: Path
+    storage_static_params: Path
+    storage_state_params: Path
     params: Path
 
     @classmethod
@@ -43,7 +44,8 @@ class InputPaths:
         section = 'input'
         return cls(
             market_data=Path(config.get(section, 'market_data')),
-            storage=Path(config.get(section, 'storage')),
+            storage_static_params=Path(config.get(section, 'storage_static_params')),
+            storage_state_params=Path(config.get(section, 'storage_state_params')),
             params=Path(config.get(section, 'params')),
         )
 
@@ -54,8 +56,13 @@ class InputPaths:
             suffix='.csv',
         )
         validate_file_suffix_path(
-            self.storage,
-            param_name='storage',
+            self.storage_static_params,
+            param_name='storage_static_params',
+            suffix='.yaml',
+        )
+        validate_file_suffix_path(
+            self.storage_static_params,
+            param_name='storage_state_params',
             suffix='.yaml',
         )
         validate_file_suffix_path(

@@ -47,7 +47,7 @@ class OptResults:
 
         price = params.prices.squeeze()
         dt = params.dt
-        gen_eta = params.storage_params.gen_efficiency
+        gen_eta = params.storage_static_params.gen_efficiency
 
         rev = dt * price * (gen_eta * gen - load)
         cum_rev = pd.Series(np.cumsum(rev), index=idx, name="cum_rev")

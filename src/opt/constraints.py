@@ -32,8 +32,8 @@ class BalancingConstraintGenerator(ConstraintGenerator):
             self.variables.load,
         )
 
-        load_eta = self.params.storage_params.load_efficiency
-        init_soc = self.params.storage_params.init_soc
+        load_eta = self.params.storage_opt_params.charge_efficiency
+        init_soc = self.params.storage_opt_params.init_soc
 
         return [
             soc[0] == init_soc,
@@ -49,7 +49,7 @@ class PowerConstraintGenerator(ConstraintGenerator):
             self.variables.load,
         )
 
-        power = self.params.storage_params.power
+        power = self.params.storage_opt_params.power
         dt = self.params.dt
 
         return [gen + load <= dt * power]
@@ -58,12 +58,12 @@ class PowerConstraintGenerator(ConstraintGenerator):
 class CapacityConstraintGenerator(ConstraintGenerator):
     def generate(self) -> list[cp.Constraint]:
         soc = self.variables.soc
-        capacity = self.params.storage_params.capacity
-        dod = self.params.storage_params.dod
+        capacity = self.params.storage_opt_params.capacity
+        dod = self.params.storage_opt_params.soc_limits
 
         return [
-            soc >= dod.MIN * capacity,
-            soc <= dod.MAX * capacity,
+            soc >= dod.min * capacity,
+            soc <= dod.max * capacity,
         ]
 
 
@@ -89,7 +89,7 @@ class RevenueDefinitionConstraintGenerator(ConstraintGenerator):
         load = self.variables.load
         rev = self.variables.rev
 
-        gen_eta = self.params.storage_params.gen_efficiency
+        gen_eta = self.params.storage_opt_params.gen_efficiency
         price = self.params.prices.squeeze()
 
         return [rev == cp.multiply(price, (gen_eta * gen - load))]
