@@ -1,6 +1,7 @@
 from pydantic import BaseModel
-from datetime import date
+from datetime import datetime
 
 
 class Params(BaseModel):
-    partition: date
+    timestep_start: datetime
+    timestep_end: datetime

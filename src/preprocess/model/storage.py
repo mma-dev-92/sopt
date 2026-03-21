@@ -40,8 +40,10 @@ class CapacityDegradationParams(BaseModel):
     """life time of a storage"""
     n_cycles: int
     """number of cycles to be performed during storage life time"""
-    calendar_fade_per_year: float
-    """calendar degradation of capacity per year"""
+    time_decay_duration_years: float
+    """time (years) of time (calendar) decay from cap_0 to cap_eol"""
+    dod_avg: float
+    """assumed average depth of a cycle"""
 
 
 class StorageStaticParams(BaseModel):

@@ -126,5 +126,5 @@ class Parameters:
         return cls(
             prices=input_data.market_data.prices.loc[indices.t_idx.vals, :].values,
             dt=input_data.market_data.resolution,
-            storage_opt_params=StorageOptParams(input_data),
+            storage_opt_params=StorageOptParams.create(input_data),
         )

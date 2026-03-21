@@ -22,4 +22,6 @@ storage:
 
     lifetime_years: 10
     n_cycles: 6000
-    calendar_fade_per_year: 0.005
+
+    time_decay_duration_years: 20
+    dod_avg: 0.7

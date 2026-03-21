@@ -3,7 +3,8 @@ import click
 import pandas as pd
 
 from src.opt.engine import Engine
-from src.postprocess.export import export_opt_results, create_exportable_results
+from src.postprocess.export import export_opt_results
+from src.postprocess.results import OptResults
 from src.preprocess.config import Configuration
 from src.preprocess.load import load_input_data
 from src.preprocess.model import InputData
@@ -13,8 +14,8 @@ def run_opt(input_data: InputData) -> pd.DataFrame:
     engine = Engine(input_data)
     engine.build()
     engine.optimize()
-    results_df = create_exportable_results(engine)
-    return results_df
+    results = OptResults.from_engine(engine)
+    return results.to_dataframe()
 
 
 @click.command()

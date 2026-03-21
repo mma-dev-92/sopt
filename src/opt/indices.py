@@ -3,10 +3,11 @@ import pandas as pd
 import numpy as np
 
 from typing import Self
-from datetime import date
 
 from src.preprocess.model import InputData
 
+
+_MINUTES_PER_HOUR = 60
 
 class Index:
 
@@ -35,19 +36,20 @@ class Indices:
     @classmethod
     def create(cls, input_data: InputData) -> Self:
         return cls(
-            t_idx=cls.create_time_index_for_one_partition(input_data.params.partition),
+            t_idx=cls.create_time_index(input_data),
         )
 
     @staticmethod
-    def create_time_index_for_one_partition(partition: date) -> Index:
-        """
-        For now hardcoded - index for one partition (24h) in 15min freq
+    def create_time_index(input_data: InputData) -> Index:
+        start = input_data.params.timestep_start
+        end = input_data.params.timestep_end
+        dt = input_data.market_data.resolution
 
-        To be generalized later
-        """
-        timestamps = pd.date_range(
-            start=pd.Timestamp(partition),
-            end=pd.Timestamp(partition) + pd.Timedelta(hours=23, minutes=45),
-            freq='15min',
+        min_resolution = int(_MINUTES_PER_HOUR * dt)
+
+        timesteps = pd.date_range(
+            start=pd.Timestamp(start),
+            end=pd.Timestamp(end) - pd.Timedelta(minutes=min_resolution),
+            freq=f'{min_resolution}min',
         )
-        return Index(name='timestamp', values=timestamps.values)
+        return Index(name='timestep', values=timesteps.values)

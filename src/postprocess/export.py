@@ -58,9 +58,10 @@ def export_opt_results(
         results_df: pd.DataFrame
 ) -> None:
 
-    partition = input_data.params.partition
+    start = input_data.params.timestep_start
+    end = input_data.params.timestep_end
     ext = configuration.output_paths.format
-    export_path = configuration.output_paths.result_dir / f"{partition}.{ext}"
+    export_path = configuration.output_paths.result_dir / f"{start}-{end}.{ext}"
 
     match ext:
         case "parquet":

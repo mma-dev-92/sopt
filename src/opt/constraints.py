@@ -28,16 +28,16 @@ class BalancingConstraintGenerator(ConstraintGenerator):
     def generate(self) -> list[cp.Constraint]:
         soc, gen, load = (
             self.variables.soc,
-            self.variables.gen,
-            self.variables.load,
+            self.variables.discharge,
+            self.variables.charge,
         )
 
-        load_eta = self.params.storage_opt_params.charge_efficiency
+        charge_eta = self.params.storage_opt_params.charge_eta
         init_soc = self.params.storage_opt_params.init_soc
 
         return [
             soc[0] == init_soc,
-            soc[1:] == soc[:-1] + load_eta * load[:-1] - gen[:-1],
+            soc[1:] == soc[:-1] + charge_eta * load[:-1] - gen[:-1],
             soc[-1] == init_soc,
         ]
 
@@ -45,11 +45,11 @@ class BalancingConstraintGenerator(ConstraintGenerator):
 class PowerConstraintGenerator(ConstraintGenerator):
     def generate(self) -> list[cp.Constraint]:
         gen, load = (
-            self.variables.gen,
-            self.variables.load,
+            self.variables.discharge,
+            self.variables.charge,
         )
 
-        power = self.params.storage_opt_params.power
+        power = self.params.storage_opt_params.nom_p
         dt = self.params.dt
 
         return [gen + load <= dt * power]
@@ -58,20 +58,21 @@ class PowerConstraintGenerator(ConstraintGenerator):
 class CapacityConstraintGenerator(ConstraintGenerator):
     def generate(self) -> list[cp.Constraint]:
         soc = self.variables.soc
-        capacity = self.params.storage_opt_params.capacity
-        dod = self.params.storage_opt_params.soc_limits
+        capacity = self.params.storage_opt_params.nom_cap
+        soc_rel_lb = self.params.storage_opt_params.soc_rel_lb
+        soc_rel_ub = self.params.storage_opt_params.soc_rel_ub
 
         return [
-            soc >= dod.min * capacity,
-            soc <= dod.max * capacity,
+            soc >= soc_rel_lb * capacity,
+            soc <= soc_rel_ub * capacity,
         ]
 
 
 class DecisionConstraintGenerator(ConstraintGenerator):
     def generate(self) -> list[cp.Constraint]:
 
-        gen = self.variables.gen
-        load = self.variables.load
+        gen = self.variables.discharge
+        load = self.variables.charge
 
         bin_gen = self.variables.bin_gen
         bin_load = self.variables.bin_load
@@ -85,11 +86,11 @@ class DecisionConstraintGenerator(ConstraintGenerator):
 class RevenueDefinitionConstraintGenerator(ConstraintGenerator):
     def generate(self) -> list[cp.Constraint]:
 
-        gen = self.variables.gen
-        load = self.variables.load
+        gen = self.variables.discharge
+        load = self.variables.charge
         rev = self.variables.rev
 
-        gen_eta = self.params.storage_opt_params.gen_efficiency
+        gen_eta = self.params.storage_opt_params.discharge_eta
         price = self.params.prices.squeeze()
 
         return [rev == cp.multiply(price, (gen_eta * gen - load))]

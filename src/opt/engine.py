@@ -50,7 +50,7 @@ class Engine:
         return result
 
     def _build_obj(self) -> cp.Minimize | cp.Maximize:
-        result = 0.0
+        result = 0
         for obj_generator_type in self._obj_generators:
             generator = obj_generator_type(
                 self.indices,
@@ -64,7 +64,7 @@ class Engine:
     def optimize(self) -> None:
         self.opt_problem.solve(
             solver=cp.HIGHS,
-            verbose=False,
+            verbose=True,
         )
         if self.opt_problem.status not in ("optimal", "optimal_inaccurate"):
             raise RuntimeError(self.opt_problem.status)
