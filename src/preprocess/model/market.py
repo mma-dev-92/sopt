@@ -1,9 +1,9 @@
-from pandas import DataFrame
+from pandas import Series
 from pydantic import BaseModel, Field
 
 
 class MarketData(BaseModel):
-    prices: DataFrame
+    prices: Series
     resolution: float = Field(gt=0, le=1.0)
 
     class Config:

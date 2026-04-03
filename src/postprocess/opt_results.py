@@ -37,8 +37,6 @@ def clean_solver_noise(
 class OptResults:
     obj: float
     """objective function value"""
-    timestep_range: tuple[datetime.datetime, datetime.datetime]
-    """range of optimized timesteps"""
     prices: pd.Series
     """energy price series"""
     cum_rev: pd.Series
@@ -67,17 +65,16 @@ class OptResults:
         soc = cls.extract_time_variable_values(variables.soc, name="soc", idx=idx)
         charge = cls.extract_time_variable_values(variables.charge, name="charge", idx=idx)
         discharge = cls.extract_time_variable_values(variables.discharge, name="discharge", idx=idx)
-        prices = pd.Series(params.prices.squeeze(), index=idx, name="price")
+        prices = pd.Series(params.dynamic.energy_price.value, index=idx, name="price")
 
-        dt = params.dt
-        discharge_eta = params.storage_opt_params.discharge_eta
+        dt = params.static.dt
+        discharge_eta = params.static.discharge_eta
 
         rev = dt * prices.values.squeeze() * (discharge_eta * discharge - charge)
         cum_rev = pd.Series(data=clean_solver_noise(np.cumsum(rev)), index=idx, name="cum_rev")
 
         return cls(
             obj=rev.sum(),
-            timestep_range=(engine.input_data.params.timestep_start, engine.input_data.params.timestep_end),
             prices=prices,
             cum_rev=cum_rev,
             charge=charge,

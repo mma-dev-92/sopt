@@ -4,7 +4,7 @@ from pathlib import Path
 from src.preprocess.model.market import MarketData
 
 
-def load_price_data_from_entsoe(path: Path) -> pd.DataFrame:
+def load_price_data_from_entsoe(path: Path) -> pd.Series:
     """
     Load DA market price data from entsoe (from CSV file)
     :param path: path to the file
@@ -17,11 +17,11 @@ def load_price_data_from_entsoe(path: Path) -> pd.DataFrame:
     data[["start_str", "end_str"]] = data["MTU (UTC)"].str.split(" - ", expand=True)
     data["timestamp"] = pd.to_datetime(data["start_str"], format="%d/%m/%Y %H:%M:%S")
     data = data.rename(columns={price_col: 'price'})
-    data = data[['timestamp', 'price']].set_index('timestamp')
+    data = data.set_index('timestamp')['price']
     return data
 
 
-def get_data_resolution(df: pd.DataFrame) -> float:
+def get_data_resolution(df: pd.Series) -> float:
     # get timestamp index
     t_index = df.index.get_level_values('timestamp')
 

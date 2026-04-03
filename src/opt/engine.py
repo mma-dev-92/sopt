@@ -1,6 +1,7 @@
 from typing import Type
 
 import cvxpy as cp
+import numpy as np
 
 import src.opt.constraints as constr
 import src.opt.obj as obj
@@ -25,14 +26,11 @@ class Engine:
     ]
 
     def __init__(self, input_data: InputData) -> None:
-        self.input_data = input_data
-
         self.opt_problem: cp.Problem | None = None
 
         self.indices = Indices.create(input_data)
         self.parameters = Parameters.create(input_data, self.indices)
         self.variables = Variables.create(self.indices)
-
 
     def build(self) -> None:
         constraints = self._build_constraints()
@@ -61,10 +59,29 @@ class Engine:
 
         return cp.Maximize(result)
 
-    def optimize(self) -> None:
-        self.opt_problem.solve(
-            solver=cp.HIGHS,
-            verbose=True,
-        )
+    def optimize(
+            self,
+            lambda_penalty: np.ndarray,
+            energy_price: np.ndarray,
+            init_soc: float,
+            cap: float
+    ) -> None:
+        self.update_dynamic_parameters(lambda_penalty, energy_price, init_soc, cap)
+        self.opt_problem.solve(solver=cp.HIGHS, verbose=True)
         if self.opt_problem.status not in ("optimal", "optimal_inaccurate"):
             raise RuntimeError(self.opt_problem.status)
+
+    def update_dynamic_parameters(
+            self,
+            lambda_penalty: np.ndarray,
+            energy_price: np.ndarray,
+            init_soc: float,
+            cap: float
+    ) -> None:
+        assert lambda_penalty.shape == energy_price.shape == self.indices.t_idx.vals.shape
+        dp = self.parameters.dynamic
+
+        dp.lambda_penalty.value = lambda_penalty
+        dp.energy_price.value = energy_price
+        dp.init_soc.value = init_soc
+        dp.cap.value = cap

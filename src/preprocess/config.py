@@ -5,7 +5,7 @@ from typing import Self
 from configparser import ConfigParser
 
 
-class OutputFormat(Enum):
+class OutputFormat(str, Enum):
     CSV = "csv"
     XLSX = "xlsx"
     PARQUET = "parquet"
@@ -91,9 +91,9 @@ class OutputPaths:
         self.validate_output_format()
 
     def validate_output_format(self) -> None:
-        if not self.format in OutputFormat:
+        if not self.format in list(OutputFormat):
             raise ConfigValidationError(
-                f"format in [output] section should be one of {[x.value for x in OutputFormat]}, "
+                f"format in [output] section should be one of {[x.value for x in list(OutputFormat)]}, "
                 f"but {self.format} was given"
             )
 

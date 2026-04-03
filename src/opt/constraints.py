@@ -32,8 +32,8 @@ class BalancingConstraintGenerator(ConstraintGenerator):
             self.variables.charge,
         )
 
-        charge_eta = self.params.storage_opt_params.charge_eta
-        init_soc = self.params.storage_opt_params.init_soc
+        charge_eta = self.params.static.charge_eta
+        init_soc = self.params.dynamic.init_soc
 
         return [
             soc[0] == init_soc,
@@ -49,8 +49,8 @@ class PowerConstraintGenerator(ConstraintGenerator):
             self.variables.charge,
         )
 
-        power = self.params.storage_opt_params.nom_p
-        dt = self.params.dt
+        power = self.params.static.nom_p
+        dt = self.params.static.dt
 
         return [gen + load <= dt * power]
 
@@ -58,9 +58,9 @@ class PowerConstraintGenerator(ConstraintGenerator):
 class CapacityConstraintGenerator(ConstraintGenerator):
     def generate(self) -> list[cp.Constraint]:
         soc = self.variables.soc
-        capacity = self.params.storage_opt_params.nom_cap
-        soc_rel_lb = self.params.storage_opt_params.soc_rel_lb
-        soc_rel_ub = self.params.storage_opt_params.soc_rel_ub
+        capacity = self.params.dynamic.cap
+        soc_rel_lb = self.params.static.soc_rel_lb
+        soc_rel_ub = self.params.static.soc_rel_ub
 
         return [
             soc >= soc_rel_lb * capacity,
@@ -90,7 +90,7 @@ class RevenueDefinitionConstraintGenerator(ConstraintGenerator):
         load = self.variables.charge
         rev = self.variables.rev
 
-        gen_eta = self.params.storage_opt_params.discharge_eta
-        price = self.params.prices.squeeze()
+        gen_eta = self.params.static.discharge_eta
+        price = self.params.dynamic.energy_price
 
         return [rev == cp.multiply(price, (gen_eta * gen - load))]

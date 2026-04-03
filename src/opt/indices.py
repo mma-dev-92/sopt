@@ -30,26 +30,13 @@ class Index:
 
 @dataclasses.dataclass
 class Indices:
-
     t_idx: Index
+    """timestep index (sequence of consecutive natural numbers)"""
 
     @classmethod
-    def create(cls, input_data: InputData) -> Self:
-        return cls(
-            t_idx=cls.create_time_index(input_data),
-        )
-
-    @staticmethod
-    def create_time_index(input_data: InputData) -> Index:
-        start = input_data.params.timestep_start
-        end = input_data.params.timestep_end
+    def create(cls, input_data: InputData, n_hours: int = 24) -> Self:
         dt = input_data.market_data.resolution
-
-        min_resolution = int(_MINUTES_PER_HOUR * dt)
-
-        timesteps = pd.date_range(
-            start=pd.Timestamp(start),
-            end=pd.Timestamp(end) - pd.Timedelta(minutes=min_resolution),
-            freq=f'{min_resolution}min',
+        tt = int(n_hours/ dt)
+        return cls(
+            t_idx=Index(name='timestep', values=np.arange(tt)),
         )
-        return Index(name='timestep', values=timesteps.values)

@@ -1,12 +1,12 @@
 import dataclasses
+from dataclasses import fields
+
 import cvxpy as cp
 
 from typing import Self
 
-import numpy as np
-
 from src.opt.indices import Indices
-from src.preprocess.model import StorageStaticParams, InputData
+from src.preprocess.model import InputData
 
 
 @dataclasses.dataclass
@@ -28,7 +28,6 @@ class StaticOptParams:
     @classmethod
     def create(cls, input_data: InputData) -> Self:
         ssp = input_data.storage_static_params
-        state = input_data.storage_state_params
 
         return cls(
             charge_eta=ssp.technical.charge_efficiency,
@@ -56,8 +55,8 @@ class DynamicOptParams:
     """Energy price for a given day"""
 
     @classmethod
-    def create(cls, input_data: InputData) -> Self:
-        tt = int(24 / input_data.market_data.resolution)
+    def create(cls, ii: Indices) -> Self:
+        tt = len(ii.t_idx.vals)
         return cls(
             lambda_penalty=cp.Parameter(shape=(tt, ), name="lambda"),
             energy_price=cp.Parameter(shape=(tt, ), name="energy_price"),
@@ -75,5 +74,5 @@ class Parameters:
     def create(cls, input_data: InputData, indices: Indices) -> Self:
         return cls(
             static=StaticOptParams.create(input_data),
-            dynamic=DynamicOptParams.create(input_data),
+            dynamic=DynamicOptParams.create(indices),
         )
