@@ -4,7 +4,7 @@ import pandas as pd
 
 from src.opt.engine import Engine
 from src.postprocess.export import export_opt_results
-from src.postprocess.results import OptResults
+from src.postprocess.opt_results import OptResults
 from src.preprocess.config import Configuration
 from src.preprocess.load import load_input_data
 from src.preprocess.model import InputData

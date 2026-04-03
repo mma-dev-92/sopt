@@ -16,12 +16,14 @@ storage:
     opex: 6000
 
   degradation:
-    max_capacity_loss: 0.2  # cap_eol
-
-    dod_segment_fraction: [0.3, 0.4, 0.3]  #
-
+    max_capacity_loss: 0.2
+    time_decay_duration_years: 20
     lifetime_years: 10
     n_cycles: 6000
 
-    time_decay_duration_years: 20
-    dod_avg: 0.7
+  deg_model:
+    reference_dod: 0.7
+    soc_sensitivity: 0.6
+    temperature_offset: 3.5
+    activation_energy: 5e4
+    reference_temperature: 298.15

@@ -9,7 +9,7 @@ class MultiOptRunner:
     Multiple optimization problems runner
 
     Used to run multiple pipelines, gather the results and summarize them. It is very simplified, assumptions:
-        * revenue degradation = storage parameters degradation
+        * revenue degradation_model = storage parameters degradation_model
         * running optimization for each day in given year (assuming perfect forecast, using DA market data)
 
     Aim of the experiment: to access if the idea is not terribly wrong.

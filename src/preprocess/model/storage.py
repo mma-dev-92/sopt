@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class MinMaxBounds(BaseModel):
@@ -7,60 +7,91 @@ class MinMaxBounds(BaseModel):
 
 
 class EconomicStorageParams(BaseModel):
-    wacc: float
-    """weighted average cost of capital for the investment"""
-    capex: float
-    """investment cost (assumed PLN/MWh)"""
-    opex: float
-    """operational costs (assumed PLN/MWh)"""
+    wacc: float = Field(
+        ..., description="Weighted Average Cost of Capital (e.g., 0.10 for 10%). Used for discounting future cash flows."
+    )
+    capex: float = Field(
+        ..., description="Total Capital Expenditure. Typically provided in PLN/MWh of nameplate capacity."
+    )
+    opex: float = Field(
+        ..., description="Annual Operational Expenditure. Typically provided in PLN/MWh/year."
+    )
 
 
 class TechnicalStorageParams(BaseModel):
-    capacity: float
-    """storage nominal (initial) capacity"""
-    power: float
-    """storage power"""
-    charge_efficiency: float
-    """charge efficiency"""
-    discharge_efficiency: float
-    """discharge efficiency"""
-    soc_limits: MinMaxBounds
-    """min & max values of the depth of discharge"""
+    capacity: float = Field(
+        ..., description="Nominal nameplate energy capacity [MWh]. The 'size' of the battery tank."
+    )
+    power: float = Field(
+        ..., description="Maximum instantaneous power output/input [MW]. Defines the C-rate."
+    )
+    charge_efficiency: float = Field(
+        ..., description="Efficiency of energy conversion during charging [0-1]. Internal losses and AC/DC conversion."
+    )
+    discharge_efficiency: float = Field(
+        ..., description="Efficiency of energy conversion during discharging [0-1]."
+    )
+    soc_limits: MinMaxBounds = Field(
+        ..., description="Operational boundaries for State of Charge to prevent deep discharge damage."
+    )
 
 
 class CapacityDegradationParams(BaseModel):
-    max_capacity_loss: float
+    max_capacity_loss: float = Field(
+        ..., description="The End-of-Life (EOL) threshold as a fraction of initial capacity (e.g., 0.2 for 20% loss)."
+    )
+    lifetime_years: int = Field(
+        ..., description="The manufacturer's warrantied calendar life under nominal conditions."
+    )
+    n_cycles: int = Field(
+        ..., description="The manufacturer's rated cycle life at the reference Depth of Discharge (DoD)."
+    )
+    time_decay_duration_years: float = Field(
+        ..., description="The theoretical time it would take for the battery to hit EOL purely through calendar aging at reference T/SOC."
+    )
+
+class CapacityDegradationModelParams(BaseModel):
     """
-    at which point storage dies 
-    cap_eol = cap_0 * max_capacity_loss
+    Parameters for the semi-empirical battery degradation_model model, governing
+    both cyclic (mechanical/kinetic) and calendar (static/potential) aging.
     """
-    dod_segment_fraction: list[float]
-    """dod cycle depth capacity degradation segmentation"""
-    lifetime_years: int
-    """life time of a storage"""
-    n_cycles: int
-    """number of cycles to be performed during storage life time"""
-    time_decay_duration_years: float
-    """time (years) of time (calendar) decay from cap_0 to cap_eol"""
-    dod_avg: float
-    """assumed average depth of a cycle"""
+    reference_dod: float = Field(
+        ..., description="The depth of discharge (δ) used as the basis for the power law "
+                         "lifetime calculation (e.g., 0.8 for 80% DoD swings)."
+    )
+    soc_sensitivity: float = Field(
+        ..., description="The coefficient (α) in the exponential stress function for "
+                         "calendar aging. Quantifies how high SOC accelerates chemical decay."
+    )
+    temperature_offset: float = Field(
+        ..., description="The constant thermal gradient (ΔT) in Kelvin between the "
+                         "ambient environment and internal cells."
+    )
+    activation_energy: float = Field(
+        ..., description="Gibbs activation energy (Ea) in J/mol. Defines temperature sensitivity."
+    )
+    reference_temperature: float = Field(
+        298.15, description="Standard reference temperature in Kelvin (25°C)."
+    )
 
 
 class StorageStaticParams(BaseModel):
     """
-    Storage parameters that are constant in time
+    High-level container for immutable storage characteristics.
     """
     technical: TechnicalStorageParams
     economics: EconomicStorageParams
     degradation: CapacityDegradationParams
-
+    deg_model: CapacityDegradationModelParams
 
 
 class StorageStateParams(BaseModel):
     """
-    Storage state parameters (evolve in time)
+    The 'Digital Twin' state. These values evolve as the simulation progresses.
     """
-    soc: float
-    """current state of charge (initial state of charge to opt problem)"""
-    capacity_loss: float
-    """current level of capacity degradation"""
+    soc: float = Field(
+        ..., description="Current State of Charge [0.0 - 1.0]. Represents the starting point for optimization."
+    )
+    capacity_loss: float = Field(
+        ..., description="Current cumulative health degradation_model [0.0 - max_capacity_loss]."
+    )
