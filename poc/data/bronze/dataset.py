@@ -1,4 +1,5 @@
 import datetime
+import os
 from pathlib import Path
 from abc import ABC, abstractmethod
 from datetime import timedelta
@@ -16,7 +17,7 @@ from poc.data.bronze.schema import (
     DataSource, DataType, PowerUnit,
 )
 
-from poc.data.bronze.metadata import BronzeBaseDatasetMetadata
+from poc.data.bronze.metadata import BronzeBaseDatasetMetadata, TimeResolution
 
 import logging
 
@@ -85,6 +86,107 @@ class BronzeDataset(ABC):
         return df
 
 
+class EntsoeMarketPriceDataset(BronzeDataset):
+    """
+    Independent ENTSO-E fetcher.
+    Dynamically adjusts resolution and filters incomplete days.
+    """
+
+    def __init__(
+            self,
+            metadata: BronzeBaseDatasetMetadata,
+            start: pd.Timestamp,
+            end: pd.Timestamp,
+            country_code: str = "PL",
+            api_key: str | None = None,
+            filter_incomplete_days: bool = True,
+    ):
+        super().__init__(metadata, start, end)
+        self.country_code = country_code
+        self.filter_incomplete_days = filter_incomplete_days
+        self.api_key = api_key or os.getenv("ENTSOE_API_KEY")
+
+        if not self.api_key:
+            raise ValueError("ENTSO-E API Key is missing.")
+
+        self.client = EntsoePandasClient(api_key=self.api_key)
+
+    def fetch(self) -> pd.DataFrame:
+        """
+        Fetches, cleans, and transforms data based on metadata resolution.
+        """
+        snapshot = pd.Timestamp.now(tz="UTC")
+
+        try:
+            series = self.client.query_day_ahead_prices(
+                self.country_code,
+                start=self.start,
+                end=self.end
+            )
+        except Exception as e:
+            logger.error(f"ENTSO-E fetch failed: {e}")
+            raise RuntimeError(f"Fetch failure: {e}")
+
+        if series.empty:
+            return pd.DataFrame(columns=MarketPriceSchema.to_schema().columns.keys())
+
+        # 1. Standardize basic structure
+        df = series.to_frame(name="price").reset_index()
+        df.rename(columns={"index": "valid_time"}, inplace=True)
+        df["valid_time"] = pd.to_datetime(df["valid_time"]).dt.tz_convert("UTC")
+
+        # 2. Add Required Columns
+        df["snapshot"] = snapshot
+        df["data_source"] = DataSource.ENTSOE.value
+        df["data_type"] = DataType.OBSERVATION.value
+        df["market"] = MarketType.DAM.value
+        df["currency"] = Currency.EUR.value
+        df["energy_unit"] = EnergyUnit.MWH.value
+        df["exchange_rate_to_pln"] = 1.0
+
+        # Calculate issue_time (12:00 CET/CEST day before)
+        df["issue_time"] = (
+                df["valid_time"].dt.tz_convert("Europe/Warsaw")
+                .dt.normalize() - pd.Timedelta(days=1)
+                + pd.Timedelta(hours=12)
+        ).dt.tz_convert("UTC")
+
+        # 3. Resolution Logic
+        # Only upsample if metadata explicitly asks for 15min
+        if self.metadata.valid_time_resolution == TimeResolution.MIN15:
+            df = self._upsample_to_15min(df)
+            logger.info("Upsampled ENTSO-E data to 15min resolution.")
+        else:
+            logger.info("Preserving original hourly ENTSO-E resolution.")
+
+        # 4. Clean incomplete days (Remove any day with a NaN price)
+        if self.filter_incomplete_days:
+            df = self._filter_incomplete_days(df)
+
+        return df[list(MarketPriceSchema.to_schema().columns.keys())]
+
+    def _upsample_to_15min(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Forward-fills hourly prices into 15-minute intervals."""
+        return (
+            df.set_index("valid_time")
+            .resample("15min")
+            .ffill()
+            .reset_index()
+        )
+
+    def _filter_incomplete_days(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Removes all intervals for a day if any interval in that day is NaN."""
+        # Group by the date part of the UTC valid_time
+        temp_date = df['valid_time'].dt.date
+        is_nan_day = df['price'].isna().groupby(temp_date).transform('any')
+
+        df_clean = df[~is_nan_day].copy()
+
+        dropped = temp_date.nunique() - df_clean['valid_time'].dt.date.nunique()
+        if dropped > 0:
+            logger.warning(f"Dropped {dropped} incomplete days from dataset.")
+
+        return df_clean
 class MarketPriceDataset(BronzeDataset):
 
     BASE_URL = "https://www.omie.es/en/file-download"

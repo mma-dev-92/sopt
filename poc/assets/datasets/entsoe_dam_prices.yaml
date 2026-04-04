@@ -1,0 +1,14 @@
+dataset_name: market_prices
+
+data_source: ENTSOE
+
+timezone: UTC
+
+valid_time_resolution: 1h
+
+time_semantics: interval_start
+
+description: >
+  Day-ahead electricity market prices for the Polish bidding zone.
+  Prices are sourced from ENTSO-E transparency platform.
+  Each record represents the clearing price for the interval starting at valid_time.

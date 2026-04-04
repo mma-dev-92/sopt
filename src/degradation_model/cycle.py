@@ -2,7 +2,7 @@ import numpy as np
 import rainflow
 from dataclasses import dataclass
 from src.degradation_model.constants import Constants as C
-from src.preprocess.model import InputData
+from src.preprocess.model import InputData, StorageStaticParams
 
 
 @dataclass
@@ -33,31 +33,31 @@ class CycleDegradationModel:
 
     def __init__(
             self,
-            input_data: InputData,
+            storage_static_params: StorageStaticParams,
             cycle_severity_exponent: float | None = None,
     ) -> None:
         """
         Initializes the model by solving for the curve-fit constant 'a'.
 
         Args:
-            input_data: Configuration object containing technical and degradation_model params.
-            cycle_severity_exponent: The 'b' coefficient in the power law. If None, 
+            storage_static_params: Static storage parameters.
+            cycle_severity_exponent: The 'b' coefficient in the power law. If None,
                 defaults to the constant specified in the global settings.
         """
         self._cycle_severity_exponent = cycle_severity_exponent or C.CYCLE_SEVERITY_EXPONENT
-        self._a = self._compute_a(input_data, self._cycle_severity_exponent)
-        self.sp = input_data.storage_static_params
+        self._a = self._compute_a(storage_static_params, self._cycle_severity_exponent)
+        self.sp = storage_static_params
 
     @staticmethod
-    def _compute_a(input_data: InputData, b: float) -> float:
+    def _compute_a(storage_static_params: StorageStaticParams, b: float) -> float:
         """
         Calculates the coefficient 'a' based on manufacturer benchmarks.
-        Derived from: N_rated = a * (DoD_rated)^(-b)
+        Derived from: N_rated = a * (DoD_rated)^(-cycle_severity_exponent)
 
         Returns:
             float: The solved coefficient 'a'.
         """
-        sp = input_data.storage_static_params
+        sp = storage_static_params
         n_rated = sp.degradation.n_cycles
         dod_rated = sp.deg_model.reference_dod
 
@@ -72,7 +72,7 @@ class CycleDegradationModel:
         Calculates the cumulative capacity loss for a given time-series period.
 
         Args:
-            cycle_t: Time-series of State of Charge [0, 1] coefficients.
+            cycle_t: Time-series of State of Charge [0, 1] coefficients = soc_mwh/cap.
             temperature_t: Time-series of internal cell temperatures [K].
 
         Returns:

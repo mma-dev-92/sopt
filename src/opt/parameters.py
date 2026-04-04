@@ -5,8 +5,8 @@ import cvxpy as cp
 
 from typing import Self
 
-from src.opt.indices import Indices
-from src.preprocess.model import InputData
+from src.opt.indices import TimeIndex
+from src.preprocess.model import InputData, StorageStaticParams
 
 
 @dataclasses.dataclass
@@ -22,20 +22,16 @@ class StaticOptParams:
     """max soc/cap"""
     nom_p: float
     """nominal power (for charging and discharging)"""
-    dt: float
-    """time resolution"""
 
     @classmethod
-    def create(cls, input_data: InputData) -> Self:
-        ssp = input_data.storage_static_params
+    def create(cls, storage_static_params: StorageStaticParams) -> Self:
 
         return cls(
-            charge_eta=ssp.technical.charge_efficiency,
-            discharge_eta=ssp.technical.discharge_efficiency,
-            soc_rel_lb=ssp.technical.soc_limits.min,
-            soc_rel_ub=ssp.technical.soc_limits.max,
-            nom_p=ssp.technical.power,
-            dt=input_data.market_data.resolution,
+            charge_eta=storage_static_params.technical.charge_efficiency,
+            discharge_eta=storage_static_params.technical.discharge_efficiency,
+            soc_rel_lb=storage_static_params.technical.soc_limits.min,
+            soc_rel_ub=storage_static_params.technical.soc_limits.max,
+            nom_p=storage_static_params.technical.power,
         )
 
 
@@ -55,8 +51,8 @@ class DynamicOptParams:
     """Energy price for a given day"""
 
     @classmethod
-    def create(cls, ii: Indices) -> Self:
-        tt = len(ii.t_idx.vals)
+    def create(cls, t_idx: TimeIndex) -> Self:
+        tt = len(t_idx.vals)
         return cls(
             lambda_penalty=cp.Parameter(shape=(tt, ), name="lambda"),
             energy_price=cp.Parameter(shape=(tt, ), name="energy_price"),
@@ -71,8 +67,8 @@ class Parameters:
     dynamic: DynamicOptParams
 
     @classmethod
-    def create(cls, input_data: InputData, indices: Indices) -> Self:
+    def create(cls, storage_static_params: StorageStaticParams, t_idx: TimeIndex) -> Self:
         return cls(
-            static=StaticOptParams.create(input_data),
-            dynamic=DynamicOptParams.create(indices),
+            static=StaticOptParams.create(storage_static_params),
+            dynamic=DynamicOptParams.create(t_idx),
         )

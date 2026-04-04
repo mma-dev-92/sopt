@@ -1,5 +1,4 @@
 import dataclasses
-import datetime
 from typing import Self
 
 import cvxpy as cp
@@ -39,8 +38,8 @@ class OptResults:
     """objective function value"""
     prices: pd.Series
     """energy price series"""
-    cum_rev: pd.Series
-    """cumulative revenue (for debugging)"""
+    rev: pd.Series
+    """revenue per timestep (for debugging)"""
     charge: pd.Series
     """load variable dump"""
     discharge: pd.Series
@@ -58,25 +57,20 @@ class OptResults:
         if problem.status not in ("optimal", "optimal_inaccurate"):
             raise RuntimeError(f"solver status: {problem.status}")
 
-        idx = engine.indices.t_idx.vals
+        idx = engine.t_idx.vals
         variables = engine.variables
         params = engine.parameters
 
         soc = cls.extract_time_variable_values(variables.soc, name="soc", idx=idx)
         charge = cls.extract_time_variable_values(variables.charge, name="charge", idx=idx)
         discharge = cls.extract_time_variable_values(variables.discharge, name="discharge", idx=idx)
+        rev = cls.extract_time_variable_values(variables.rev, name="rev", idx=idx)
         prices = pd.Series(params.dynamic.energy_price.value, index=idx, name="price")
-
-        dt = params.static.dt
-        discharge_eta = params.static.discharge_eta
-
-        rev = dt * prices.values.squeeze() * (discharge_eta * discharge - charge)
-        cum_rev = pd.Series(data=clean_solver_noise(np.cumsum(rev)), index=idx, name="cum_rev")
 
         return cls(
             obj=rev.sum(),
+            rev=rev,
             prices=prices,
-            cum_rev=cum_rev,
             charge=charge,
             discharge=discharge,
             soc=soc,
@@ -88,6 +82,6 @@ class OptResults:
         return pd.Series(extracted, name=name, index=idx)
 
     def to_dataframe(self) -> pd.DataFrame:
-        result = pd.concat([self.cum_rev, self.prices, self.soc, self.charge, self.discharge], axis=1)
+        result = pd.concat([self.rev, self.prices, self.soc, self.charge, self.discharge], axis=1)
         result.index.name = "timestep"
         return result

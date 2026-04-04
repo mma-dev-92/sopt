@@ -1,10 +1,8 @@
 import dataclasses
-import pandas as pd
 import numpy as np
 
 from typing import Self
 
-from src.preprocess.model import InputData
 
 
 _MINUTES_PER_HOUR = 60
@@ -19,6 +17,9 @@ class Index:
         self._values = values
         self._ii = np.arange(len(values))
 
+    def __len__(self) -> int:
+        return len(self._values)
+
     @property
     def ii(self) -> np.ndarray:
         return self._ii
@@ -28,15 +29,25 @@ class Index:
         return self._values
 
 
-@dataclasses.dataclass
-class Indices:
-    t_idx: Index
-    """timestep index (sequence of consecutive natural numbers)"""
+class TimeIndex(Index):
 
-    @classmethod
-    def create(cls, input_data: InputData, n_hours: int = 24) -> Self:
-        dt = input_data.market_data.resolution
-        tt = int(n_hours/ dt)
-        return cls(
-            t_idx=Index(name='timestep', values=np.arange(tt)),
-        )
+    def __init__(self, dt: float, n_hours: int) -> None:
+        super().__init__(name="TimeIndex", values=np.arange(int(n_hours * dt)))
+        self._dt = dt
+        self._n_hours = n_hours
+
+    @property
+    def dt(self) -> float:
+        """
+        Time resolution (fraction of hour)
+
+        if dt = 0.25 then time resolution is 15-minutes
+        """
+        return self._dt
+
+    @property
+    def n_hours(self) -> int:
+        """
+        Number of hours in TimeIndex
+        """
+        return self._n_hours

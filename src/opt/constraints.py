@@ -2,7 +2,7 @@ import cvxpy as cp
 
 from abc import abstractmethod, ABCMeta
 
-from src.opt.indices import Indices
+from src.opt.indices import TimeIndex
 from src.opt.parameters import Parameters
 from src.opt.variables import Variables
 
@@ -11,11 +11,11 @@ class ConstraintGenerator(metaclass=ABCMeta):
 
     def __init__(
             self,
-            indices: Indices,
+            time_index: TimeIndex,
             variables: Variables,
             params: Parameters
     ) -> None:
-        self.indices = indices
+        self.time_index = time_index
         self.params = params
         self.variables = variables
 
@@ -50,7 +50,7 @@ class PowerConstraintGenerator(ConstraintGenerator):
         )
 
         power = self.params.static.nom_p
-        dt = self.params.static.dt
+        dt = self.time_index.dt
 
         return [gen + load <= dt * power]
 

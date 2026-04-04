@@ -25,7 +25,7 @@ def run_opt(input_data: InputData) -> pd.DataFrame:
     engine = Engine(input_data)
     engine.build()
     engine.optimize(
-        lambda_penalty=np.ones(engine.indices.t_idx.vals.shape),
+        lambda_penalty=np.ones(engine.t_idx.t_idx.vals.shape),
         energy_price=extract_energy_prices(input_data),
         init_soc=input_data.storage_state_params.soc,
         cap=input_data.storage_static_params.technical.capacity,

@@ -12,33 +12,29 @@ class CalendarDegradationModel:
     and State of Charge (SOC) stress.
     """
 
-    def __init__(self, input_data: InputData) -> None:
+    def __init__(self, storage_static_params: StorageStaticParams, dt: float) -> None:
         """
         Initializes the model and pre-calculates the base diffusion coefficient.
-
-        Args:
-            input_data: Container for market resolution and static storage parameters.
         """
-        dt = input_data.market_data.resolution
-        self.sp = input_data.storage_static_params
+        self.sp = storage_static_params
         # Renamed to reflect physical 'k' factor in the diffusion model
         self.diffusion_coeff = self._calculate_diffusion_coefficient(self.sp, dt)
 
-    def degradation(self, temperature: np.ndarray, soc: np.ndarray, nth_timestep: np.ndarray) -> float:
+    def degradation(self, temperature: np.ndarray, soc: np.ndarray, storage_age: np.ndarray) -> float:
         """
         Calculates the cumulative capacity loss increment for the given period.
 
         Args:
             temperature: Ambient temperature time-series in Kelvin [K].
             soc: State of Charge time-series as coefficients [0, 1].
-            nth_timestep: Absolute timesteps since commissioning for each point in the series.
+            storage_age: Storage age described in number of timesteps.
 
         Returns:
             float: Total fractional capacity loss increment for the period (e.g., 1.5e-5).
         """
         temperature_deg = self._temperature_degradation(temperature)
         soc_deg = self._soc_degradation(soc)
-        time_deg = self._time_decay_degradation(nth_timestep)
+        time_deg = self._time_decay_degradation(storage_age)
 
         # The product of stressors represents the instantaneous degradation_model rate
         return (temperature_deg * soc_deg * time_deg).sum()

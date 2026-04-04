@@ -3,7 +3,7 @@ import dataclasses
 
 from typing import Self
 
-from src.opt.indices import Indices
+from src.opt.indices import TimeIndex
 
 
 @dataclasses.dataclass
@@ -24,8 +24,8 @@ class Variables:
     """logical variable indicating if storage is generating"""
 
     @classmethod
-    def create(cls, indices: Indices) -> Self:
-        tt = len(indices.t_idx.vals)
+    def create(cls, t_idx: TimeIndex) -> Self:
+        tt = len(t_idx)
         return cls(
             soc=cp.Variable(tt, name='soc', nonneg=True),
             discharge=cp.Variable(tt, name='discharge', nonneg=True),

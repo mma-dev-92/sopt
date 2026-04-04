@@ -2,7 +2,6 @@ from abc import abstractmethod, ABCMeta
 
 import cvxpy as cp
 
-from src.opt.indices import Indices
 from src.opt.parameters import Parameters
 from src.opt.variables import Variables
 
@@ -11,11 +10,9 @@ class ObjectiveGenerator(metaclass=ABCMeta):
 
     def __init__(
         self,
-        indices: Indices,
         params: Parameters,
         variables: Variables,
     ) -> None:
-        self.indices = indices
         self.variables = variables
         self.params = params
 
@@ -26,5 +23,14 @@ class ObjectiveGenerator(metaclass=ABCMeta):
 
 class RevenueObjectiveGenerator(ObjectiveGenerator):
     def generate(self) -> cp.Expression:
-        rev = self.variables.rev
-        return cp.sum(rev)
+        return cp.sum(self.variables.rev)
+
+
+class LambdaPenaltyObjectiveGenerator(ObjectiveGenerator):
+    def generate(self) -> cp.Expression:
+        return -cp.sum(
+            cp.multiply(
+                self.params.dynamic.lambda_penalty,
+                (self.variables.charge + self.variables.discharge) / 2.0
+            )
+        )
