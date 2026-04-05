@@ -85,7 +85,7 @@ class BatteryEnvironment(EnvironmentInterface):
             reward=results.obj,
             terminated=self.is_terminated(),
             # TODO: @Kuba: just add here whatever you will need for debugging
-            info=dict(),
+            info=dict(opt_results=results),
         )
 
     def reset(self) -> Observation:
@@ -121,12 +121,14 @@ class BatteryEnvironment(EnvironmentInterface):
         return Observation(energy_prices=price_vector)
 
     def compute_degradation(self, results: OptResults) -> float:
-        temperature = np.ones(len(self.engine.t_idx)) * Constants.opt_temperature
+        tt = len(self.engine.t_idx)
+        temperature = np.ones(tt) * Constants.opt_temperature
         nth_state = self.state_history[-1]
 
         current_capacity = nth_state.cap
         nth_day = nth_state.nth_day
 
+        age_vector = np.arange(nth_day * tt, (nth_day + 1) * tt) + 1
         soc_t = results.soc / current_capacity
         dt = self.engine.t_idx.dt
 
@@ -137,7 +139,7 @@ class BatteryEnvironment(EnvironmentInterface):
         calendar_degradation = self.calendar_degradation_model.degradation(
             temperature=temperature,
             soc=soc_t,
-            storage_age=nth_day * 24 * dt
+            storage_age=age_vector,
         )
 
         return (cycle_degradation + calendar_degradation) * nth_state.cap

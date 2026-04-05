@@ -83,8 +83,10 @@ class CalendarDegradationModel:
         side-reactions like SEI layer growth.
         """
         soc_sensitivity = self.sp.deg_model.soc_sensitivity
+        reference_soc = 0.5
 
-        return np.exp(soc_sensitivity * soc)
+        # normalize it, so at soc = 50% the stressor will be e^0 = 1
+        return np.exp(soc_sensitivity * (soc - reference_soc))
 
     def _time_decay_degradation(self, nth_timestep: np.ndarray) -> np.ndarray:
         """
